@@ -437,7 +437,7 @@ textarea::placeholder { color: var(--muted); }
 
 <script>
 const COLORS = ['#e8b340','#5b9fd4','#4db87a','#c070d4','#e05555','#4ab8a0'];
-const DB_NAME = 'FilmVoteDB';
+const DB_NAME = 'FilmVoteDB_v2';
 const STORE_NAME = 'votes';
 
 const Q = {
@@ -523,26 +523,6 @@ async function poll() {
     renderVoterTags();
   } catch(e) {
     console.error('Poll error:', e);
-  }
-}
-
-async function clearAllVotes() {
-  try {
-    if (!db) await initDB();
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
-    store.clear();
-    return new Promise((resolve) => {
-      tx.oncomplete = () => {
-        st.votes = [];
-        updateHeader();
-        renderSheet();
-        renderVoterTags();
-        resolve();
-      };
-    });
-  } catch(e) {
-    console.error('Clear error:', e);
   }
 }
 
@@ -860,15 +840,6 @@ async function init() {
   render();
   setInterval(poll, 8000);
 }
-
-// Keyboard shortcut: Ctrl+Shift+R to reset all votes
-document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.shiftKey && e.key === 'R') {
-    if (confirm('Czy na pewno chcesz usunąć WSZYSTKIE głosy?')) {
-      clearAllVotes().then(() => render());
-    }
-  }
-});
 
 init();
 </script>
