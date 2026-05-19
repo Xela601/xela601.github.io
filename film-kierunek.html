@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Jaki film kręcimy?</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0e0e0e;
+  --surface: #181818;
+  --border: #272727;
+  --border-light: #333;
+  --text: #f0f0f0;
+  --muted: #5a5a5a;
+  --muted2: #888;
+  --accent: #e8e020;
+  --accent-dim: rgba(232,224,32,0.12);
+}
+
+html, body {
+  min-height: 100dvh;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.page { max-width: 440px; margin: 0 auto; padding: 24px 20px 120px; }
+
+/* ── HEADER ── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+  max-width: 440px;
+  margin: 0 auto;
+}
+.header-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted2);
+  letter-spacing: 0.05em;
+}
+.voter-pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.voter-pill:hover { border-color: var(--border-light); color: var(--text); }
+
+/* ── PROGRESS ── */
+.progress-wrap { padding: 16px 20px 0; max-width: 440px; margin: 0 auto; }
+.progress-track { height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 1px; transition: width 0.4s ease; width: 0%; }
+.step-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── NAME SCREEN ── */
+.hero-title {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 8px;
+  margin-top: 32px;
+}
+.hero-sub {
+  font-size: 0.875rem;
+  color: var(--muted2);
+  line-height: 1.65;
+  margin-bottom: 36px;
+}
+
+input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 15px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  color: var(--text);
+  outline: none;
+  display: block;
+  margin-bottom: 10px;
+  -webkit-appearance: none;
+  transition: border-color 0.15s;
+}
+input:focus { border-color: var(--accent); }
+input::placeholder { color: var(--muted); }
+
+/* ── QUESTION ── */
+.q-krok {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  margin-top: 28px;
+}
+.q-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 24px;
+}
+
+.opts { display: flex; flex-direction: column; gap: 10px; }
+
+.opt {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  width: 100%;
+  transition: border-color 0.12s, background 0.12s;
+  position: relative;
+}
+.opt:hover { border-color: var(--border-light); background: #1e1e1e; }
+.opt:active { border-color: var(--accent); }
+.opt-title { font-size: 1rem; font-weight: 700; margin-bottom: 5px; }
+.opt-desc  { font-size: 0.82rem; color: var(--muted2); line-height: 1.55; }
+.opt-voters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.opt-voter {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--accent);
+  border: 1px solid rgba(232,224,32,0.3);
+  border-radius: 3px;
+  padding: 1px 7px;
+  background: var(--accent-dim);
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--muted2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.back-btn:hover { color: var(--text); }
+
+/* ── IDEA SCREEN ── */
+textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text);
+  outline: none;
+  display: block;
+  margin-bottom: 10px;
+  -webkit-appearance: none;
+  resize: none;
+  min-height: 130px;
+  line-height: 1.6;
+  transition: border-color 0.15s;
+}
+textarea:focus { border-color: var(--accent); }
+textarea::placeholder { color: var(--muted); }
+
+/* ── END SCREEN ── */
+.end-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 22px;
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+.end-badge {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--accent);
+  border: 1px solid rgba(232,224,32,0.4);
+  border-radius: 3px;
+  padding: 2px 8px;
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+  background: var(--accent-dim);
+}
+.end-result {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+.end-sub {
+  font-size: 0.84rem;
+  color: var(--muted2);
+  line-height: 1.65;
+}
+
+.summary-block {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.s-row { display: grid; grid-template-columns: 100px 1fr; border-bottom: 1px solid var(--border); }
+.s-row:last-child { border-bottom: none; }
+.s-k {
+  padding: 12px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.63rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+}
+.s-v { padding: 12px 14px; font-size: 0.85rem; line-height: 1.5; }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  width: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 15px;
+  background: var(--accent);
+  color: #111;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  transition: opacity 0.15s;
+  letter-spacing: -0.01em;
+}
+.btn-primary:active { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.25; cursor: default; }
+
+.btn-ghost {
+  width: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 13px;
+  background: none;
+  color: var(--muted2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: 8px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-ghost:hover { border-color: var(--border-light); color: var(--text); }
+
+/* ── BOTTOM BAR ── */
+.bottom-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  padding: 12px 20px 20px;
+  background: linear-gradient(0deg, var(--bg) 70%, transparent);
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 440px;
+  margin: 0 auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.bottom-bar.show { display: flex; }
+
+/* ── RESULTS ── */
+.results-header { margin-top: 32px; margin-bottom: 28px; }
+.results-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; }
+.results-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted2);
+}
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.63rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  margin-top: 28px;
+}
+
+.result-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 8px;
+}
+.result-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.result-label { font-size: 0.95rem; font-weight: 700; }
+.result-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+.result-bar-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
+.result-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.7s ease; }
+.result-names { display: flex; flex-wrap: wrap; gap: 4px; }
+.result-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+.result-idea {
+  font-size: 0.78rem;
+  color: var(--muted2);
+  font-style: italic;
+  line-height: 1.55;
+  padding-top: 10px;
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.result-idea-author { font-style: normal; color: var(--muted2); font-weight: 600; }
+
+/* ── SHEET ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.overlay.on { opacity: 1; pointer-events: all; }
+.sheet {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-radius: 16px 16px 0 0;
+  z-index: 101;
+  transform: translateY(100%);
+  transition: transform 0.25s ease;
+  max-height: 70dvh;
+  display: flex; flex-direction: column;
+}
+.sheet.on { transform: none; }
+.sheet-handle { width: 32px; height: 3px; background: var(--border); border-radius: 2px; margin: 12px auto 0; flex-shrink: 0; }
+.sheet-head {
+  padding: 10px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+.sheet-head-title { font-size: 0.9rem; font-weight: 700; }
+.sheet-close { background: none; border: none; color: var(--muted2); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; cursor: pointer; }
+.sheet-body { overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+.feed-item { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.fi-name { font-size: 0.88rem; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.fi-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.fi-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.fi-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+.fi-idea { font-size: 0.75rem; color: var(--muted2); font-style: italic; margin-top: 6px; line-height: 1.5; }
+.sheet-empty { padding: 24px 20px; font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div class="sheet-head-title" id="sheetTitle">Kto zagłosował</div>
+    <button class="sheet-close" onclick="closeSheet()">zamknij</button>
+  </div>
+  <div class="sheet-body" id="sheetBody"><div class="sheet-empty">Nikt jeszcze nie zagłosował.</div></div>
+</div>
+
+<div id="stickyTop">
+  <div class="header">
+    <div class="header-title">🎬 Jaki film kręcimy?</div>
+    <button class="voter-pill" id="voterPill" onclick="openSheet()">0 głosów</button>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="step-label" id="stepLabel"></div>
+  </div>
+</div>
+
+<div class="page" id="page"></div>
+
+<div class="bottom-bar" id="bottomBar">
+  <button class="btn-primary" id="resultsBtn" onclick="showResults()" style="display:none">
+    📊 Pokaż wyniki głosowania
+  </button>
+</div>
+
+<script>
+const COLORS = ['#e8b340','#5b9fd4','#4db87a','#c070d4','#e05555','#4ab8a0'];
+const KEY = 'filmvote_v9';
+const DB_NAME = 'FilmVoteDB';
+const STORE_NAME = 'votes';
+
+const Q = {
+  format: {
+    step: 1, label: 'Krok 1 z 2',
+    question: 'Jak robimy film?',
+    options: [
+      { t: 'Nagrywamy sami', d: 'Piszemy scenariusz, nagrywamy, montujemy — cały film nasz.', next: 'styl' },
+      { t: 'Wywiady z Panią Kasią', d: 'Wywiady na koniec roku — prostsze, mniej naszej roboty.', next: 'KASIA' },
+    ]
+  },
+  styl: {
+    step: 2, label: 'Krok 2 z 2',
+    question: 'Jaki klimat?',
+    options: [
+      { t: 'Komedia', d: 'Lekko i śmiesznie. Dobra energia, nie staramy się za bardzo.', next: 'KOMEDIA' },
+      { t: 'Film poważny', d: 'Realistyczny, z prawdziwą wagą. Serio staramy się zrobić coś dobrego.', next: 'POMYSL' },
+    ]
+  }
+};
+
+let st = { screen: 'name', name: '', history: [], current: 'format', votes: [] };
+let db = null;
+
+// ── INDEXEDDB STORAGE ──
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onerror = () => reject(request.error);
+    request.onupgradeneeded = (e) => {
+      const database = e.target.result;
+      if (!database.objectStoreNames.contains(STORE_NAME)) {
+        database.createObjectStore(STORE_NAME, { keyPath: 'name' });
+      }
+    };
+    request.onsuccess = () => {
+      db = request.result;
+      resolve();
+    };
+  });
+}
+
+async function load() {
+  try {
+    if (!db) await initDB();
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.getAll();
+    return new Promise((resolve) => {
+      request.onsuccess = () => {
+        st.votes = request.result || [];
+        resolve();
+      };
+    });
+  } catch(e) {
+    console.error('Load error:', e);
+  }
+}
+
+async function saveVote(entry) {
+  try {
+    if (!db) await initDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.put(entry);
+    return new Promise((resolve) => {
+      tx.oncomplete = () => {
+        st.votes = st.votes.filter(v => v.name !== entry.name);
+        st.votes.push(entry);
+        resolve();
+      };
+    });
+  } catch(e) {
+    console.error('Save error:', e);
+  }
+}
+
+async function poll() {
+  try {
+    await load();
+    updateHeader();
+    renderSheet();
+    renderVoterTags();
+  } catch(e) {
+    console.error('Poll error:', e);
+  }
+}
+
+// ── SHEET ──
+function openSheet()  { document.getElementById('sheet').classList.add('on'); document.getElementById('overlay').classList.add('on'); }
+function closeSheet() { document.getElementById('sheet').classList.remove('on'); document.getElementById('overlay').classList.remove('on'); }
+
+function renderSheet() {
+  const body = document.getElementById('sheetBody');
+  const title = document.getElementById('sheetTitle');
+  const all = st.votes;
+  title.textContent = `Kto zagłosował (${all.length})`;
+  if (!all.length) { body.innerHTML = '<div class="sheet-empty">Nikt jeszcze nie zagłosował.</div>'; return; }
+  body.innerHTML = '';
+  [...all].reverse().forEach(v => {
+    const color = COLORS[v.name.charCodeAt(0) % COLORS.length];
+    const el = document.createElement('div');
+    el.className = 'feed-item';
+    const chips = (v.path||[]).map(p => `<span class="fi-chip">${p}</span>`).join('');
+    const idea = v.idea ? `<div class="fi-idea">${v.idea}</div>` : '';
+    el.innerHTML = `<div class="fi-name"><span class="fi-dot" style="background:${color}"></span>${v.name}</div><div class="fi-chips">${chips}</div>${idea}`;
+    body.appendChild(el);
+  });
+}
+
+// ── HEADER ──
+function updateHeader() {
+  const n = st.votes.length;
+  document.getElementById('voterPill').textContent = n === 0 ? '0 głosów' : n === 1 ? '1 głos' : n < 5 ? `${n} głosy` : `${n} głosów`;
+}
+
+function updateProgress() {
+  const fill = document.getElementById('progressFill');
+  const label = document.getElementById('stepLabel');
+  const end = ['KASIA','KOMEDIA','POWAZNY','WYNIKI'].includes(st.screen);
+  if (st.screen === 'name') { fill.style.width = '0%'; label.textContent = ''; return; }
+  if (end || st.screen === 'WYNIKI') { fill.style.width = '100%'; label.textContent = 'Gotowe'; return; }
+  if (st.screen === 'POMYSL') { fill.style.width = '90%'; label.textContent = 'Krok 2 z 2 — pomysł'; return; }
+  const q = Q[st.current];
+  const pct = q ? Math.round(((q.step - 1) / 2) * 100 + 25) : 50;
+  fill.style.width = pct + '%';
+  label.textContent = q?.label || '';
+}
+
+// ── RENDER ──
+function render() {
+  updateProgress();
+  renderSheet();
+  updateHeader();
+  const p = document.getElementById('page');
+  p.innerHTML = '';
+
+  if      (st.screen === 'name')    renderName(p);
+  else if (st.screen === 'vote')    renderVote(p);
+  else if (st.screen === 'POMYSL')  renderIdea(p);
+  else if (st.screen === 'KASIA')   renderEndKasia(p);
+  else if (st.screen === 'KOMEDIA') renderEndKomedia(p);
+  else if (st.screen === 'POWAZNY') renderEndPowazny(p);
+  else if (st.screen === 'WYNIKI')  renderResults(p);
+
+  window.scrollTo({ top: 0 });
+}
+
+// ── NAME ──
+function renderName(p) {
+  p.innerHTML = `
+    <div class="hero-title">Jaki film kręcimy?</div>
+    <div class="hero-sub">Dwa pytania. Każdy głosuje, wszyscy widzą wyniki.</div>
+    <input id="nameInput" type="text" placeholder="Wpisz swoje imię…" maxlength="40" autocomplete="off" />
+    <button class="btn-primary" id="nameBtn" disabled>Dalej →</button>
+  `;
+  const inp = document.getElementById('nameInput');
+  const btn = document.getElementById('nameBtn');
+  inp.addEventListener('input', () => btn.disabled = inp.value.trim().length < 2);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !btn.disabled) startVoting(inp.value.trim()); });
+  btn.onclick = () => { const v = inp.value.trim(); if (v.length >= 2) startVoting(v); };
+  setTimeout(() => inp.focus(), 60);
+}
+
+function startVoting(name) {
+  st.name = name;
+  st.screen = 'vote';
+  st.current = 'format';
+  st.history = [];
+  render();
+}
+
+// ── VOTE ──
+function renderVote(p) {
+  const q = Q[st.current];
+  let html = '';
+  if (st.history.length > 0) html += `<button class="back-btn" id="backBtn">← Wróć</button>`;
+  html += `<div class="q-krok">${q.label}</div><div class="q-title">${q.question}</div><div class="opts" id="optGrid"></div>`;
+  p.innerHTML = html;
+  if (st.history.length > 0) document.getElementById('backBtn').onclick = goBack;
+
+  const grid = document.getElementById('optGrid');
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.dataset.qid = st.current;
+    btn.dataset.t = opt.t;
+    const voters = getVotersFor(st.current, opt.t);
+    const voterHTML = voters.length ? `<div class="opt-voters">${voters.map(n => `<span class="opt-voter">${n}</span>`).join('')}</div>` : '';
+    btn.innerHTML = `<div class="opt-title">${opt.t}</div><div class="opt-desc">${opt.d}</div>${voterHTML}`;
+    btn.onclick = () => pick(opt);
+    grid.appendChild(btn);
+  });
+}
+
+function getVotersFor(qid, t) {
+  return st.votes.filter(r => r.rawData?.some(a => a.qid === qid && a.t === t)).map(r => r.name);
+}
+
+function renderVoterTags() {
+  document.querySelectorAll('.opt[data-qid]').forEach(btn => {
+    const voters = getVotersFor(btn.dataset.qid, btn.dataset.t);
+    let el = btn.querySelector('.opt-voters');
+    if (voters.length) {
+      if (!el) { el = document.createElement('div'); el.className = 'opt-voters'; btn.appendChild(el); }
+      el.innerHTML = voters.map(n => `<span class="opt-voter">${n}</span>`).join('');
+    } else if (el) el.remove();
+  });
+}
+
+function pick(opt) {
+  st.history.push({ qid: st.current, opt });
+  if (opt.next === 'POMYSL') { st.screen = 'POMYSL'; commitVote(false, 'POWAZNY', null); }
+  else if (['KASIA','KOMEDIA','POWAZNY'].includes(opt.next)) { st.screen = opt.next; commitVote(true, opt.next, null); }
+  else { st.current = opt.next; commitVote(false, null, null); }
+  render();
+}
+
+function goBack() {
+  if (['KASIA','KOMEDIA','POWAZNY','POMYSL'].includes(st.screen)) {
+    const l = st.history.pop(); st.screen = 'vote'; if (l) st.current = l.qid; render(); return;
+  }
+  if (!st.history.length) return;
+  const p = st.history.pop(); st.current = p.qid; render();
+}
+
+// ── IDEA ──
+function renderIdea(p) {
+  p.innerHTML = `
+    <button class="back-btn" id="backBtn">← Wróć</button>
+    <div class="q-krok">Krok 2 z 2 — opcjonalnie</div>
+    <div class="q-title">Masz jakiś pomysł?</div>
+    <p style="font-size:0.82rem;color:var(--muted2);margin-bottom:18px;line-height:1.65">Napisz temat, klimat, cokolwiek masz w głowie. Możesz też pominąć.</p>
+    <textarea id="ideaInput" placeholder="Np. coś o przyjaźni, o szkole, o końcu roku…" maxlength="500"></textarea>
+    <button class="btn-primary" id="ideaBtn">Zapisz głos →</button>
+    <button class="btn-ghost" id="ideaSkip">Pomiń i zapisz bez pomysłu</button>
+  `;
+  document.getElementById('backBtn').onclick = goBack;
+  document.getElementById('ideaBtn').onclick = () => {
+    const idea = document.getElementById('ideaInput').value.trim();
+    commitVote(true, 'POWAZNY', idea);
+    st.screen = 'POWAZNY';
+    render();
+  };
+  document.getElementById('ideaSkip').onclick = () => {
+    commitVote(true, 'POWAZNY', null);
+    st.screen = 'POWAZNY';
+    render();
+  };
+}
+
+// ── COMMIT ──
+async function commitVote(done, result, idea) {
+  if (!st.name) return;
+  await saveVote({
+    name: st.name,
+    path: st.history.map(h => h.opt.t),
+    rawData: st.history.map(h => ({ qid: h.qid, t: h.opt.t })),
+    done, result, idea
+  });
+  renderSheet();
+  updateHeader();
+}
+
+// ── END SCREENS ──
+function buildSummary() {
+  return `<div class="summary-block">${st.history.map(h => {
+    const q = Q[h.qid];
+    return `<div class="s-row"><div class="s-k">${q?.label||'Wybór'}</div><div class="s-v">${h.opt.t}</div></div>`;
+  }).join('')}</div>`;
+}
+
+function endButtons() {
+  return `
+    <button class="btn-primary" onclick="showResults()" style="margin-top:4px">📊 Pokaż wyniki głosowania</button>
+    <button class="btn-ghost" onclick="restart()">Zmień odpowiedź</button>
+  `;
+}
+
+function renderEndKasia(p) {
+  p.innerHTML = `
+    <div class="end-box">
+      <div class="end-badge">ODPOWIEDŹ ZAPISANA</div>
+      <div class="end-result">Wywiady z Panią Kasią</div>
+      <div class="end-sub">Rozumiemy — Pani Kasia na pewno zrobi coś dobrego na koniec roku.</div>
+    </div>
+    ${buildSummary()}
+    ${endButtons()}
+  `;
+}
+
+function renderEndKomedia(p) {
+  p.innerHTML = `
+    <div class="end-box">
+      <div class="end-badge">ODPOWIEDŹ ZAPISANA ✓</div>
+      <div class="end-result">Komedia 😄</div>
+      <div class="end-sub">Twój głos trafił do zespołu. Naciśnij poniżej żeby zobaczyć wyniki.</div>
+    </div>
+    ${buildSummary()}
+    ${endButtons()}
+  `;
+}
+
+function renderEndPowazny(p) {
+  const cur = st.votes.find(r => r.name === st.name);
+  const ideaRow = cur?.idea ? `<div class="s-row"><div class="s-k">Pomysł</div><div class="s-v">${cur.idea}</div></div>` : '';
+  p.innerHTML = `
+    <div class="end-box">
+      <div class="end-badge">ODPOWIEDŹ ZAPISANA ✓</div>
+      <div class="end-result">Film poważny 🎬</div>
+      <div class="end-sub">Twój głos trafił do zespołu. Naciśnij poniżej żeby zobaczyć wyniki.</div>
+    </div>
+    <div class="summary-block">
+      ${st.history.map(h => { const q = Q[h.qid]; return `<div class="s-row"><div class="s-k">${q?.label||'Wybór'}</div><div class="s-v">${h.opt.t}</div></div>`; }).join('')}
+      ${ideaRow}
+    </div>
+    ${endButtons()}
+  `;
+}
+
+// ── RESULTS ──
+function showResults() { st.screen = 'WYNIKI'; render(); }
+
+function renderResults(p) {
+  const all = st.votes;
+  const total = all.length;
+
+  if (total === 0) {
+    p.innerHTML = `<div style="margin-top:32px"><div class="results-title">Brak głosów</div><button class="btn-ghost" style="margin-top:16px" onclick="restart()">Wróć</button></div>`;
+    return;
+  }
+
+  const formatCounts = {};
+  const stylCounts = {};
+  all.forEach(r => {
+    (r.rawData || []).forEach(a => {
+      if (a.qid === 'format') formatCounts[a.t] = (formatCounts[a.t] || 0) + 1;
+      if (a.qid === 'styl')   stylCounts[a.t]   = (stylCounts[a.t]   || 0) + 1;
+    });
+  });
+
+  function votersFor(qid, label) {
+    return all.filter(r => r.rawData?.some(a => a.qid === qid && a.t === label)).map(r => r.name);
+  }
+
+  function renderSection(qid, counts) {
+    return Object.entries(counts).sort((a,b) => b[1]-a[1]).map(([label, count]) => {
+      const pct = Math.round((count / total) * 100);
+      const voters = votersFor(qid, label);
+      return `
+        <div class="result-row">
+          <div class="result-top">
+            <div class="result-label">${label}</div>
+            <div class="result-pct">${count} głos${count===1?'':'ów'} · ${pct}%</div>
+          </div>
+          <div class="result-bar-track"><div class="result-bar-fill" style="width:${pct}%"></div></div>
+          <div class="result-names">${voters.map(n => `<span class="result-name">${n}</span>`).join('')}</div>
+        </div>`;
+    }).join('');
+  }
+
+  const ideas = all.filter(r => r.idea);
+  const ideasHTML = ideas.length ? `
+    <div class="section-label">Pomysły</div>
+    ${ideas.map(i => `<div class="result-row"><div class="result-idea"><span class="result-idea-author">${i.name}:</span> ${i.idea}</div></div>`).join('')}
+  ` : '';
+
+  const stylHTML = Object.keys(stylCounts).length
+    ? `<div class="section-label">Klimat</div>${renderSection('styl', stylCounts)}`
+    : '';
+
+  const totalLabel = total === 1 ? '1 głos' : total < 5 ? `${total} głosy` : `${total} głosów`;
+
+  p.innerHTML = `
+    <div class="results-header">
+      <div class="results-title">Wyniki</div>
+      <div class="results-meta">${totalLabel} łącznie</div>
+    </div>
+    <div class="section-label">Forma projektu</div>
+    ${renderSection('format', formatCounts)}
+    ${stylHTML}
+    ${ideasHTML}
+    <button class="btn-ghost" style="margin-top:8px" onclick="restart()">Zagłosuj ponownie</button>
+  `;
+
+  // animate bars after render
+  setTimeout(() => {
+    document.querySelectorAll('.result-bar-fill').forEach(el => {
+      const w = el.style.width;
+      el.style.width = '0%';
+      requestAnimationFrame(() => { el.style.width = w; });
+    });
+  }, 50);
+}
+
+function restart() { st.screen = 'name'; st.history = []; st.current = 'format'; st.name = ''; render(); }
+
+async function init() {
+  await load();
+  render();
+  setInterval(poll, 8000);
+}
+
+init();
+</script>
+
+</body>
+</html>
