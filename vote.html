@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ Vote Now</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  max-width: 500px;
+  width: 100%;
+  padding: 40px;
+  animation: slideIn 0.4s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 28px;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header p {
+  color: #666;
+  font-size: 14px;
+}
+
+.name-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 16px;
+  margin-bottom: 16px;
+  transition: border-color 0.3s;
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.question {
+  margin-bottom: 24px;
+}
+
+.question h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-btn {
+  padding: 16px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: left;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.option-btn:hover {
+  border-color: #667eea;
+  background: #f5f5ff;
+}
+
+.option-btn.selected {
+  border-color: #667eea;
+  background: #667eea;
+  color: white;
+}
+
+.button {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 12px;
+}
+
+.button-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+.button-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.button-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-secondary {
+  background: white;
+  border: 2px solid #e0e0e0;
+  color: #333;
+}
+
+.button-secondary:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.results {
+  display: none;
+}
+
+.result-item {
+  margin-bottom: 16px;
+}
+
+.result-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.result-bar {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.result-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transition: width 0.5s ease;
+}
+
+.voters-list {
+  font-size: 12px;
+  color: #999;
+  margin-top: 6px;
+}
+
+.vote-count {
+  background: #f5f5ff;
+  padding: 16px;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 16px;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>⚡ Lightning Vote</h1>
+    <p>Fast voting with instant results</p>
+  </div>
+
+  <!-- Name Input Screen -->
+  <div id="nameScreen" class="section">
+    <input type="text" id="nameInput" class="name-input" placeholder="Enter your name..." maxlength="30">
+    <button class="button button-primary" onclick="startVoting()" id="startBtn" disabled>Start Voting →</button>
+  </div>
+
+  <!-- Voting Screen -->
+  <div id="votingScreen" class="section hidden">
+    <div class="question">
+      <h2 id="questionText"></h2>
+    </div>
+    <div class="options" id="optionsContainer"></div>
+    <button class="button button-primary" onclick="submitVote()" id="submitBtn" disabled style="margin-top: 20px;">
+      Submit Vote →
+    </button>
+    <button class="button button-secondary" onclick="goBack()">← Back</button>
+  </div>
+
+  <!-- Results Screen -->
+  <div id="resultsScreen" class="section hidden">
+    <div class="vote-count" id="voteCount"></div>
+    <div id="resultsContainer"></div>
+    <button class="button button-primary" onclick="newVote()">Vote Again</button>
+  </div>
+</div>
+
+<script>
+const POLL_INTERVAL = 5000;
+const STORAGE_KEY = 'lightning_votes_v1';
+
+// Questions data
+const QUESTIONS = [
+  {
+    question: 'What\'s your favorite programming language?',
+    options: ['JavaScript', 'Python', 'Rust', 'Go', 'Java']
+  },
+  {
+    question: 'Best time to code?',
+    options: ['Morning', 'Afternoon', 'Evening', 'Night', 'All day!']
+  },
+  {
+    question: 'Coffee or Tea?',
+    options: ['Coffee ☕', 'Tea 🍵', 'Energy drink ⚡', 'Water 💧', 'No beverages']
+  }
+];
+
+// State
+let state = {
+  name: '',
+  currentQuestion: 0,
+  selectedOption: null,
+  votes: {}
+};
+
+// Initialize storage in IndexedDB
+async function initStorage() {
+  return new Promise((resolve) => {
+    const request = indexedDB.open('VoteDB', 1);
+    request.onerror = () => resolve();
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('votes')) {
+        db.createObjectStore('votes');
+      }
+    };
+    request.onsuccess = () => resolve();
+  });
+}
+
+async function saveVote(name, questionIdx, option) {
+  const db = await getDB();
+  const key = `${name}_q${questionIdx}`;
+  return new Promise((resolve) => {
+    const tx = db.transaction('votes', 'readwrite');
+    tx.objectStore('votes').put({ name, questionIdx, option, timestamp: Date.now() }, key);
+    tx.oncomplete = resolve;
+  });
+}
+
+async function loadVotes() {
+  const db = await getDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction('votes', 'readonly');
+    const all = tx.objectStore('votes').getAll();
+    all.onsuccess = () => resolve(all.result);
+  });
+}
+
+function getDB() {
+  return new Promise((resolve) => {
+    const request = indexedDB.open('VoteDB', 1);
+    request.onsuccess = () => resolve(request.result);
+  });
+}
+
+function show(screenId) {
+  document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+  document.getElementById(screenId).classList.remove('hidden');
+}
+
+function updateNameInput() {
+  const name = document.getElementById('nameInput').value.trim();
+  document.getElementById('startBtn').disabled = name.length < 2;
+}
+
+function startVoting() {
+  state.name = document.getElementById('nameInput').value.trim();
+  if (state.name.length < 2) return;
+  state.currentQuestion = 0;
+  state.selectedOption = null;
+  showQuestion();
+  show('votingScreen');
+}
+
+function showQuestion() {
+  const q = QUESTIONS[state.currentQuestion];
+  document.getElementById('questionText').textContent = q.question;
+  
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  state.selectedOption = null;
+  
+  q.options.forEach((option, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = option;
+    btn.onclick = () => selectOption(idx);
+    container.appendChild(btn);
+  });
+  
+  document.getElementById('submitBtn').disabled = true;
+}
+
+function selectOption(idx) {
+  state.selectedOption = idx;
+  document.querySelectorAll('.option-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === idx);
+  });
+  document.getElementById('submitBtn').disabled = false;
+}
+
+async function submitVote() {
+  const q = QUESTIONS[state.currentQuestion];
+  const option = q.options[state.selectedOption];
+  await saveVote(state.name, state.currentQuestion, option);
+  
+  if (state.currentQuestion < QUESTIONS.length - 1) {
+    state.currentQuestion++;
+    showQuestion();
+  } else {
+    showResults();
+  }
+}
+
+async function showResults() {
+  const votes = await loadVotes();
+  const results = {};
+  
+  QUESTIONS.forEach((q, idx) => {
+    results[idx] = {};
+    q.options.forEach(opt => { results[idx][opt] = { count: 0, voters: [] }; });
+  });
+  
+  votes.forEach(v => {
+    if (!results[v.questionIdx][v.option]) {
+      results[v.questionIdx][v.option] = { count: 0, voters: [] };
+    }
+    results[v.questionIdx][v.option].count++;
+    results[v.questionIdx][v.option].voters.push(v.name);
+  });
+  
+  const total = votes.length;
+  document.getElementById('voteCount').textContent = `${total} vote${total !== 1 ? 's' : ''} total`;
+  
+  const container = document.getElementById('resultsContainer');
+  container.innerHTML = '';
+  
+  Object.keys(results).forEach(qIdx => {
+    const h = document.createElement('h3');
+    h.textContent = QUESTIONS[qIdx].question;
+    h.style.marginBottom = '16px';
+    container.appendChild(h);
+    
+    const sorted = Object.entries(results[qIdx])
+      .sort((a, b) => b[1].count - a[1].count)
+      .filter(([_, data]) => data.count > 0);
+    
+    sorted.forEach(([option, data]) => {
+      const pct = Math.round((data.count / total) * 100);
+      const item = document.createElement('div');
+      item.className = 'result-item';
+      item.innerHTML = `
+        <div class="result-label">
+          <span>${option}</span>
+          <span>${data.count} (${pct}%)</span>
+        </div>
+        <div class="result-bar">
+          <div class="result-fill" style="width: 0%"></div>
+        </div>
+        <div class="voters-list">${data.voters.join(', ')}</div>
+      `;
+      container.appendChild(item);
+      
+      setTimeout(() => {
+        item.querySelector('.result-fill').style.width = pct + '%';
+      }, 100);
+    });
+  });
+  
+  show('resultsScreen');
+}
+
+function goBack() {
+  if (state.currentQuestion > 0) {
+    state.currentQuestion--;
+    showQuestion();
+  } else {
+    show('nameScreen');
+  }
+}
+
+function newVote() {
+  document.getElementById('nameInput').value = '';
+  document.getElementById('nameInput').focus();
+  show('nameScreen');
+}
+
+// Event listeners
+document.getElementById('nameInput').addEventListener('input', updateNameInput);
+document.getElementById('nameInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter' && !document.getElementById('startBtn').disabled) {
+    startVoting();
+  }
+});
+
+// Initialize
+(async () => {
+  await initStorage();
+  show('nameScreen');
+  document.getElementById('nameInput').focus();
+})();
+</script>
+
+</body>
+</html>
